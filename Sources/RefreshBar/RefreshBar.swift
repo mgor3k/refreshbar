@@ -20,6 +20,9 @@ public class RefreshBar: UIView {
     public var loadingWidth: CGFloat = 15
     public var duration: TimeInterval = 0.5
     
+    private var loadingAnimator: UIViewPropertyAnimator?
+    private var stateChangeAnimator: UIViewPropertyAnimator?
+    
     public init() {
         super.init(frame: .zero)
         addSubview(progressView)
@@ -54,11 +57,21 @@ private extension RefreshBar {
     func updateState(from oldState: State) {
         switch state {
         case .loading:
-            animateToRight()
+            animate()
         default:
             if case .loading = oldState {
-                UIView.animate(withDuration: duration, animations: updateFrames)
+                loadingAnimator?.stopAnimation(true)
+                stateChangeAnimator = UIViewPropertyAnimator(duration: 0.2, curve: .linear) {
+                    self.updateFrames()
+                }
+                stateChangeAnimator?.startAnimation()
             } else {
+                if stateChangeAnimator?.isRunning == true {
+                    stateChangeAnimator?.addCompletion { [weak self] _ in
+                        self?.updateFrames()
+                    }
+                    return
+                }
                 updateFrames()
             }
         }
@@ -73,32 +86,21 @@ private extension RefreshBar {
         progressView.frame = CGRect(origin: .zero, size: size)
     }
     
-    func animateToRight() {
-        UIView.animate(withDuration: duration, animations: {
+    func animate(reversed: Bool = false) {
+        loadingAnimator = UIViewPropertyAnimator(duration: duration, curve: .linear) {
             self.progressView.frame = CGRect(
-                x: self.frame.width - self.loadingWidth,
+                x: reversed ? 0 : self.frame.width - self.loadingWidth,
                 y: 0,
                 width: self.loadingWidth,
                 height: self.frame.height
             )
-        }, completion: { [weak self] _ in
-            guard case .loading = self?.state else { return }
-            self?.animateToLeft()
-        })
-    }
-    
-    func animateToLeft() {
-        UIView.animate(withDuration: duration, animations: {
-            self.progressView.frame = CGRect(
-                x: 0,
-                y: 0,
-                width: self.loadingWidth,
-                height: self.frame.height
-            )
-        }, completion: { [weak self] _ in
-            guard case .loading = self?.state else { return }
-            self?.animateToRight()
-        })
+        }
+        
+        loadingAnimator?.addCompletion { [weak self] _ in
+            self?.animate(reversed: !reversed)
+        }
+        
+        loadingAnimator?.startAnimation()
     }
 }
 
