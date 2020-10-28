@@ -57,7 +57,7 @@ private extension RefreshBar {
     func updateState(from oldState: State) {
         switch state {
         case .loading:
-            animate()
+            animateLoading()
         default:
             if case .loading = oldState {
                 loadingAnimator?.stopAnimation(true)
@@ -86,7 +86,7 @@ private extension RefreshBar {
         progressView.frame = CGRect(origin: .zero, size: size)
     }
     
-    func animate(reversed: Bool = false) {
+    func animateLoading(reversed: Bool = false) {
         loadingAnimator = UIViewPropertyAnimator(duration: duration, curve: .linear) {
             self.progressView.frame = CGRect(
                 x: reversed ? 0 : self.frame.width - self.loadingWidth,
@@ -97,7 +97,7 @@ private extension RefreshBar {
         }
         
         loadingAnimator?.addCompletion { [weak self] _ in
-            self?.animate(reversed: !reversed)
+            self?.animateLoading(reversed: !reversed)
         }
         
         loadingAnimator?.startAnimation()
