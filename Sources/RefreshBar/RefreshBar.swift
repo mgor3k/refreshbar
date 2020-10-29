@@ -2,12 +2,18 @@
 
 import UIKit
 
+/// A customizable animated UIKit loading bar
 public class RefreshBar: UIView {
+    /// State of the bar
     public enum State: Equatable {
+        /// Shows progress from 0.0 to 1.0
         case progress(CGFloat)
+        
+        /// Loading animation
         case loading
     }
     
+    /// Current state of the bar
     public var state = State.progress(1) {
         didSet {
             guard state != oldValue else { return }
@@ -15,14 +21,17 @@ public class RefreshBar: UIView {
         }
     }
     
-    private let progressView = UIView()
-    
+    /// The width of the loading indicator
     public var loadingWidth: CGFloat = 15
+    
+    /// The duration of the loading animation
     public var duration: TimeInterval = 0.5
     
+    private let progressView = UIView()
     private var loadingAnimator: UIViewPropertyAnimator?
     private var stateChangeAnimator: UIViewPropertyAnimator?
     
+    /// RefreshBar initializer
     public init() {
         super.init(frame: .zero)
         addSubview(progressView)
@@ -50,7 +59,6 @@ public class RefreshBar: UIView {
     public override var intrinsicContentSize: CGSize {
         CGSize(width: 100, height: 6)
     }
-    
 }
 
 private extension RefreshBar {
